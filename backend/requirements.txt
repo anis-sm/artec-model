@@ -1,0 +1,10 @@
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+psycopg2-binary
+Werkzeug
+PyJWT
+tensorflow
+pandas
+openpyxl
+scikit-learn
