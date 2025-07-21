@@ -8,3 +8,4 @@ tensorflow
 pandas
 openpyxl
 scikit-learn
+pymysql
