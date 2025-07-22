@@ -49,7 +49,7 @@ const Model = () => {
             {/* 📌 Requirements Box */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm p-4 mb-4 max-w-xl w-full">
                 <p>📅 <strong>Input:</strong> Excel file with at least <strong>730 days</strong> (2 years) of daily oil data.</p>
-                <p>📈 <strong>Output:</strong> Forecast of the next <strong>180 days</strong> (6 months).</p>
+                <p>📈 <strong>Output:</strong> Forecast of the next <strong>365 days</strong> (1 year).</p>
             </div>
             {/* Upload Card */}
             <div className="bg-white shadow-md rounded-xl p-6 w-full max-w-xl space-y-4">

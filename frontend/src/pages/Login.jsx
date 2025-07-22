@@ -3,6 +3,8 @@ import img from "../assets/Side.jpg";
 import google from "../assets/icons/google.svg";
 import facebook from "../assets/icons/facebook.svg";
 import apple from "../assets/icons/apple.svg";
+import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from 'react-toastify';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -30,17 +32,20 @@ export default function LoginPage() {
 
             // Cache user's public data
             sessionStorage.setItem("user", JSON.stringify(userData));
-
+            toast.success("✅ Login succesful!");
             // Redirect or reload
             window.location.href = "/";
         } else {
             alert(data.message);
+                toast.error(`❌ ${data.message || "Something went wrong"}`);
+            
         }
     };
 
 
     return (
         <div className="flex min-h-screen">
+            <ToastContainer position="top-right" autoClose={3000} />
             {/* Left Image Section with Blue Overlay */}
             <div className="w-1/2 bg-cover bg-center relative" style={{ backgroundImage: `url(${img})` }}>
                 {/* Blue Overlay */}

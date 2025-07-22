@@ -8,8 +8,9 @@ class Config:
     SQLALCHEMY_BINDS = {
         'mysql': "mysql+pymysql://root:@localhost:3306/Flask"
     }
-    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = 'uploads'
     OUTPUT_FOLDER = 'outputs'
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  
+
+
