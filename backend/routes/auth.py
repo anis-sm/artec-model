@@ -25,30 +25,25 @@ def register():
 
     return jsonify({"message": "User registered successfully"}), 201
 
-
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
 
     if user and check_password_hash(user.password_hash, data['password']):
-        # Create JWT token
         token = jwt.encode({
-        'user_id': user.user_id,
-        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=6)
-            }, current_app.secret_key, algorithm="HS256")
+            'user_id': user.user_id,
+            'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=6)
+        }, current_app.secret_key, algorithm="HS256")
 
-        # Return token as cookie
         response = make_response(jsonify({
             "message": "Login successful",
             "user_id": user.user_id
         }))
-        response.set_cookie("token", token, httponly=True, samesite='Lax')  # Secure in production
-
+        response.set_cookie("token", token, httponly=True, samesite='Lax')
         return response, 200
     else:
         return jsonify({"message": "Invalid credentials"}), 401
-
 
 @auth_bp.route("/me", methods=["GET"])
 def get_user_info():
@@ -66,8 +61,35 @@ def get_user_info():
             "email": user.email,
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "username": user.username
+            "username": user.username,
+            "mobile_number": user.mobile_number
         }), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Session expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Invalid token"}), 401
+
+@auth_bp.route("/update", methods=["PUT"])
+def update_user():
+    token = request.cookies.get("token")
+
+    if not token:
+        return jsonify({"message": "Not authenticated"}), 401
+
+    try:
+        data = jwt.decode(token, current_app.secret_key, algorithms=["HS256"])
+        user = User.query.get(data["user_id"])
+        
+        update_data = request.get_json()
+        
+        user.first_name = update_data.get('first_name', user.first_name)
+        user.last_name = update_data.get('last_name', user.last_name)
+        user.username = update_data.get('username', user.username)
+        user.mobile_number = update_data.get('mobile_number', user.mobile_number)
+        
+        db.session.commit()
+        
+        return jsonify({"message": "User information updated successfully"}), 200
     except jwt.ExpiredSignatureError:
         return jsonify({"message": "Session expired"}), 401
     except jwt.InvalidTokenError:
@@ -76,5 +98,5 @@ def get_user_info():
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
     response = make_response(jsonify({"message": "Logged out successfully"}))
-    response.set_cookie("token", "", expires=0)  # Clear the token cookie
+    response.set_cookie("token", "", expires=0)
     return response, 200

@@ -6,6 +6,7 @@ import HeroSection from './pages/Section1'
 import Section2 from './pages/Section2'
 import Section3 from './pages/Section3'
 import Section4 from './pages/Section4'
+import Settings from './pages/Setting'
 import Login from './pages/Login'
 
 function App() {
@@ -49,6 +50,8 @@ useEffect(() => {
         {/* 🔐 Login page */}
         <Route path="/login" element={<Login />} />
         <Route path="/model" element={<Model />} user={user} />
+        <Route path="/settings" element={<Settings />} />
+
       </Routes>
     </Router>
   )

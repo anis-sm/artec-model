@@ -1,4 +1,3 @@
-# routes/predict.py
 from flask import Blueprint, request, jsonify, send_file
 import pandas as pd
 import numpy as np
@@ -8,10 +7,8 @@ from sklearn.preprocessing import MinMaxScaler
 from io import BytesIO
 
 predict_bp = Blueprint("predict", __name__)
-
 model_path = "cnn_lstm_attention_oil_forecast.keras"
 model = load_model(model_path)
-
 input_days = 730
 output_days = 180
 
@@ -41,6 +38,12 @@ def predict():
         print("✅ File read into DataFrame")
         df = preprocess(df)
         print("✅ Preprocessing done")
+        
+        # Keep actual data for output
+        actual_data = df[['BORE_OIL_VOL']].reset_index()
+        actual_data['Source'] = 'Actual'
+        actual_data = actual_data.rename(columns={'DATEPRD': 'DATESTD'})
+        
         scaler = MinMaxScaler()
         scaled = scaler.fit_transform(df)
         scaled_df = pd.DataFrame(scaled, index=df.index, columns=df.columns)
@@ -50,18 +53,31 @@ def predict():
         print("✅ Input reshaped:", input_data.shape)
         prediction_scaled = model.predict(input_data)[0]
         print("✅ Prediction done")
+        
+        # Create predicted data
         temp = np.tile(input_data[0][-1], (output_days, 1))
         temp[:, df.columns.get_loc("BORE_OIL_VOL")] = prediction_scaled
         prediction = scaler.inverse_transform(temp)[:, df.columns.get_loc("BORE_OIL_VOL")]
         future_dates = pd.date_range(start=df.index[-1] + pd.Timedelta(days=1), periods=output_days)
-        result_df = pd.DataFrame({
-            "DATE": future_dates,
-            "PREDICTED_BORE_OIL_VOL": prediction
+        predicted_data = pd.DataFrame({
+            "DATESTD": future_dates,
+            "BORE_OIL_VOL": prediction,
+            "Source": "Predicted"
         })
+        
+        # Combine actual and predicted data
+        result_df = pd.concat([actual_data, predicted_data], ignore_index=True)
+        result_df['DATESTD'] = pd.to_datetime(result_df['DATESTD'])
+        
         output = BytesIO()
         result_df.to_excel(output, index=False)
         output.seek(0)
-        return send_file(output, as_attachment=True, download_name="forecast.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name="forecast.xlsx",
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
     except Exception as e:
         print("❌ ERROR:", e)
         return jsonify({"error": str(e)}), 500
